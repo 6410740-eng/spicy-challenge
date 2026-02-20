@@ -1,0 +1,40 @@
+@import "tailwindcss";
+
+@theme {
+  --color-spicy-red: #E60000;
+  --color-spicy-red-dark: #A30000;
+  --color-spicy-red-light: #FF3333;
+  --color-spicy-black: #0A0A0A;
+  --color-spicy-black-light: #1A1A1A;
+  
+  --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-display: 'Outfit', var(--font-sans);
+}
+
+@layer base {
+  body {
+    @apply bg-spicy-black text-white font-sans antialiased m-0 min-h-screen selection:bg-spicy-red selection:text-white;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-spicy-black);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-spicy-black-light);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-spicy-red-dark);
+}
+
+/* Gradient text utilities */
+@layer utilities {
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-spicy-red-light to-spicy-red-dark;
+  }
+}
