@@ -1,440 +1,180 @@
 import { useState, useEffect } from 'react'
-import confetti from 'canvas-confetti'
+import { Routes, Route, Link, useLocation } from 'react-router-dom'
+import { Flame, Star, ShoppingBag, Trophy, Info, Menu, X } from 'lucide-react'
 
-import { supabase } from './supabaseClient'
+// Page Components
+import Home from './pages/Home'
+import Reviews from './pages/Reviews'
+import Guide from './pages/Guide'
+import Products from './pages/Products'
+import Top10 from './pages/Top10'
 
-// Initial Empty Data to avoid crashes before load
-const INITIAL_DATA = {
-  korea: [],
-  global: []
-}
-
-const POINTS_PER_CHALLENGE = 100;
-
-// --- Translations ---
+// Translations for Layout Elements
 const t = {
-  kr: {
-    eventTag: '글로벌 서바이벌 이벤트',
-    titleMain: '매운맛',
-    titleSub: '챌린지',
-    desc: '당신의 한계를 시험하세요. 박스 안의 시크릿 코드를 인증하고, 당신의 지역에 점수를 더해 글로벌 랭킹을 올리세요.',
-    verifyTitle: '챌린지 인증하기',
-    labelCountry: '국가 카테고리',
-    optKorea: '대한민국 (Korea) - 지역 선택',
-    optGlobal: '기타 국가 (Global)',
-    labelRegion: '지역/국가 선택',
-    labelCode: '시크릿 시리얼 코드',
-    labelCodeHelp: '(상자 내부 표기)',
-    placeholderCode: 'XXXX-XXXX',
-    errorInvalid: '유효한 8자리 이상의 코드를 입력해주세요. (예: A8F9-2K3P)',
-    errorUsed: '이미 사용된 코드입니다.',
-    btnSubmit: '인증 및 100점 획득',
-    leaderboardTitle: '실시간 리더보드',
-    tabKorea: '대한민국 지역별',
-    tabGlobal: '글로벌 국가별',
-    modalTitle: '도전 성공!',
-    modalDesc1: '매운맛 챌린지 성공을 축하합니다.',
-    modalDesc2: '에 100점이 추가되었습니다!',
-    modalCodeLabel: '인증된 코드',
-    modalBtn: '닫기 및 랭킹 확인',
-    footer: '매운맛 챌린지 글로벌. Safe & Secure.'
-  },
-  en: {
-    eventTag: 'GLOBAL SURVIVAL EVENT',
-    titleMain: 'SPICY',
-    titleSub: 'CHALLENGE',
-    desc: 'The ultimate heat test. Verify your success code inside the box to claim points for your region and climb the global ladder.',
-    verifyTitle: 'Verify To Rank Up',
-    labelCountry: 'Country Category',
-    optKorea: 'South Korea (By Region)',
-    optGlobal: 'Global (Other Countries)',
-    labelRegion: 'Select Region / Country',
-    labelCode: 'Secret Serial Code',
-    labelCodeHelp: '(inside the box)',
-    placeholderCode: 'XXXX-XXXX',
-    errorInvalid: 'Please enter a valid 8+ char code (e.g. A8F9-2K3P)',
-    errorUsed: 'This code has already been used.',
-    btnSubmit: 'SUBMIT & CLAIM 100 PTS',
-    leaderboardTitle: 'LIVE LEADERBOARD',
-    tabKorea: 'Korea Regional',
-    tabGlobal: 'Global Standings',
-    modalTitle: 'SURVIVED!',
-    modalDesc1: 'You\'ve proven your heat tolerance.',
-    modalDesc2: 'received +100 points!',
-    modalCodeLabel: 'Verified Code',
-    modalBtn: 'CLOSE & VIEW RANKS',
-    footer: 'Spicy Challenge Global. Safe & Secure.'
-  }
+    kr: {
+        navHome: '홈',
+        navReviews: '후기 게시판',
+        navGuide: '활용방법',
+        navProducts: '더레드랩 상품',
+        navTop10: '매운맛 Top 10',
+        footer: '매운맛 챌린지 글로벌. Safe & Secure.'
+    },
+    en: {
+        navHome: 'Home',
+        navReviews: 'Reviews',
+        navGuide: 'Guide',
+        navProducts: 'Products',
+        navTop10: 'Top 10 Spicy',
+        footer: 'Spicy Challenge Global. Safe & Secure.'
+    }
 }
 
 function App() {
-  const [lang, setLang] = useState('kr') // default Korean
-  const [activeTab, setActiveTab] = useState('korea') // 'korea' or 'global'
-  const [leaderboard, setLeaderboard] = useState(INITIAL_DATA)
-  const [dropdownOptions, setDropdownOptions] = useState({ korea: [], global: [] })
+    const [lang, setLang] = useState('kr') // default Korean
+    const [isMenuOpen, setIsMenuOpen] = useState(false)
+    const location = useLocation()
 
-  // Form State
-  const [formData, setFormData] = useState({ category: 'korea', targetId: '', serial: '' })
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [errorMsg, setErrorMsg] = useState('')
-  const [successData, setSuccessData] = useState(null)
+    // Close mobile menu on route change
+    useEffect(() => {
+        setIsMenuOpen(false)
+    }, [location.pathname])
 
-  // Fetch initial data from Supabase
-  useEffect(() => {
-    fetchLeaderboard();
-  }, [])
+    const text = t[lang]
 
-  const fetchLeaderboard = async () => {
-    const { data, error } = await supabase
-      .from('rankings')
-      .select('*')
-      .order('score', { ascending: false });
+    return (
+        <div className={`min-h-screen bg-spicy-black text-white selection:bg-spicy-red selection:text-white flex flex-col items-center overflow-x-hidden ${lang === 'kr' ? 'break-keep' : ''}`}>
 
-    if (error) {
-      console.error('Error fetching data:', error);
-      return;
-    }
+            {/* Navigation Bar */}
+            <nav className="fixed top-0 left-0 w-full z-50 bg-black/60 backdrop-blur-md border-b border-white/10">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="flex items-center justify-between h-16">
 
-    if (data) {
-      const krData = data.filter(d => d.category === 'korea');
-      const glData = data.filter(d => d.category === 'global');
+                        {/* Logo */}
+                        <div className="flex-shrink-0 flex items-center gap-2">
+                            <Flame className="w-6 h-6 text-spicy-red-light" />
+                            <Link to="/" className="font-display font-black text-xl tracking-tight text-white hover:text-spicy-red-light transition-colors">
+                                SPICY CHALLENGE
+                            </Link>
+                        </div>
 
-      setLeaderboard({ korea: krData, global: glData });
+                        {/* Desktop Menu */}
+                        <div className="hidden md:flex items-center space-x-1 flex-1 justify-center">
+                            <NavLink to="/" icon={<Flame className="w-4 h-4" />} text={text.navHome} />
+                            <NavLink to="/reviews" icon={<Star className="w-4 h-4" />} text={text.navReviews} />
+                            <NavLink to="/guide" icon={<Info className="w-4 h-4" />} text={text.navGuide} />
+                            <NavLink to="/products" icon={<ShoppingBag className="w-4 h-4" />} text={text.navProducts} />
+                            <NavLink to="/top10" icon={<Trophy className="w-4 h-4" />} text={text.navTop10} />
+                        </div>
 
-      // Setup dropdowns and initial selections
-      setDropdownOptions({ korea: krData, global: glData });
-      if (krData.length > 0 && formData.targetId === '') {
-        setFormData(prev => ({ ...prev, targetId: krData[0].id }));
-      }
-    }
-  }
+                        {/* Language Toggle */}
+                        <div className="hidden md:flex bg-black/40 border border-white/10 rounded-full p-1 h-9">
+                            <button
+                                onClick={() => setLang('kr')}
+                                className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${lang === 'kr' ? 'bg-spicy-red text-white' : 'text-gray-400 hover:text-white'}`}
+                            >
+                                KR
+                            </button>
+                            <button
+                                onClick={() => setLang('en')}
+                                className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${lang === 'en' ? 'bg-spicy-red text-white' : 'text-gray-400 hover:text-white'}`}
+                            >
+                                EN
+                            </button>
+                        </div>
 
-  const text = t[lang];
-  // Calculate highest score for progress bar scaling
-  const maxScore = leaderboard[activeTab].length > 0 ? Math.max(...leaderboard[activeTab].map(item => item.score)) : 100;
-
-  // Sync targetId when category changes
-  const handleCategoryChange = (e) => {
-    const newCat = e.target.value;
-    const defaultTarget = dropdownOptions[newCat].length > 0 ? dropdownOptions[newCat][0].id : '';
-    setFormData({
-      ...formData,
-      category: newCat,
-      targetId: defaultTarget
-    });
-    setErrorMsg('');
-  };
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target
-    setFormData(prev => ({ ...prev, [name]: value }))
-    setErrorMsg('')
-  }
-
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-
-    if (!formData.serial || formData.serial.length < 8) {
-      setErrorMsg(text.errorInvalid)
-      return
-    }
-
-    setIsSubmitting(true)
-    setErrorMsg('')
-
-    const codeUpper = formData.serial.toUpperCase();
-
-    try {
-      // 1. Check if code is valid and unused
-      const { data: codeData, error: codeError } = await supabase
-        .from('serial_codes')
-        .select('*')
-        .eq('code', codeUpper)
-        .single();
-
-      if (codeError || !codeData) {
-        setErrorMsg('존재하지 않거나 유효하지 않은 코드입니다. (Invalid code)');
-        setIsSubmitting(false);
-        return;
-      }
-
-      if (codeData.is_used) {
-        setErrorMsg(text.errorUsed);
-        setIsSubmitting(false);
-        return;
-      }
-
-      // 2. Mark code as used
-      const { error: updateCodeError } = await supabase
-        .from('serial_codes')
-        .update({ is_used: true, used_at: new Date().toISOString(), used_by_region: formData.targetId })
-        .eq('code', codeUpper);
-
-      if (updateCodeError) throw updateCodeError;
-
-      // Find target name for UI
-      const listToSearch = formData.category === 'korea' ? leaderboard.korea : leaderboard.global;
-      const targetObj = listToSearch.find(item => item.id === formData.targetId);
-      const targetName = targetObj ? targetObj.name : 'Unknown';
-      const newScore = (targetObj?.score || 0) + POINTS_PER_CHALLENGE;
-
-      // 3. Update ranking score
-      const { error: rankError } = await supabase
-        .from('rankings')
-        .update({ score: newScore })
-        .eq('id', formData.targetId);
-
-      if (rankError) throw rankError;
-
-      // Refresh Leaderboard
-      await fetchLeaderboard();
-
-      triggerConfetti();
-      setSuccessData({
-        points: POINTS_PER_CHALLENGE,
-        targetName: targetName,
-        serial: codeUpper
-      });
-      setFormData(prev => ({ ...prev, serial: '' }));
-
-    } catch (err) {
-      console.error(err);
-      setErrorMsg('서버 에러가 발생했습니다. 잠시 후 다시 시도해주세요.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  }
-
-  const triggerConfetti = () => {
-    const duration = 3000;
-    const end = Date.now() + duration;
-    const frame = () => {
-      confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 }, colors: ['#E60000', '#FF3333', '#ffffff', '#000000'] });
-      confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1 }, colors: ['#E60000', '#FF3333', '#ffffff', '#000000'] });
-      if (Date.now() < end) requestAnimationFrame(frame);
-    };
-    frame();
-  }
-
-  return (
-    <div className={`min-h-screen bg-spicy-black text-white selection:bg-spicy-red selection:text-white flex flex-col items-center overflow-x-hidden pb-20 ${lang === 'kr' ? 'break-keep' : ''}`}>
-
-      {/* Language Toggle Fixed Top Right */}
-      <div className="absolute top-6 right-6 z-50 flex bg-black/40 border border-white/10 rounded-full p-1 backdrop-blur-md">
-        <button
-          onClick={() => setLang('kr')}
-          className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all ${lang === 'kr' ? 'bg-spicy-red text-white' : 'text-gray-400 hover:text-white'}`}
-        >
-          KR
-        </button>
-        <button
-          onClick={() => setLang('en')}
-          className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all ${lang === 'en' ? 'bg-spicy-red text-white' : 'text-gray-400 hover:text-white'}`}
-        >
-          EN
-        </button>
-      </div>
-
-      {/* Header Section */}
-      <header className="w-full flex flex-col items-center justify-center pt-24 pb-12 relative">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-2xl h-[400px] bg-spicy-red/15 blur-[120px] rounded-full pointer-events-none"></div>
-
-        <div className="inline-block px-4 py-1.5 rounded-full border border-spicy-red/30 bg-spicy-red/10 text-spicy-red-light text-xs font-bold tracking-widest mb-6 z-10 backdrop-blur-sm uppercase">
-          {text.eventTag}
-        </div>
-
-        <h1 className="text-6xl md:text-8xl font-black tracking-tighter mb-6 text-center z-10 font-display">
-          {text.titleMain} <span className="text-gradient">{text.titleSub}</span>
-        </h1>
-        <p className="text-gray-300 text-lg md:text-xl text-center max-w-xl px-4 z-10 font-medium leading-relaxed">
-          {text.desc}
-        </p>
-      </header>
-
-      <main className="w-full max-w-4xl px-4 flex flex-col items-center z-10">
-
-        {/* Authentication Form */}
-        <section className="w-full max-w-md bg-spicy-black-light/40 backdrop-blur-xl border border-white/5 rounded-3xl p-8 md:p-10 shadow-2xl mb-24 flex flex-col relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-spicy-red-light/5 via-transparent to-transparent pointer-events-none"></div>
-
-          <h2 className="text-2xl font-bold mb-8 font-display text-center">{text.verifyTitle}</h2>
-
-          <form onSubmit={handleSubmit} className="flex flex-col gap-6 relative z-10">
-
-            <div className="flex flex-col gap-4">
-              {/* Category Dropdown */}
-              <div>
-                <label className="block text-xs uppercase tracking-wider text-gray-400 mb-2 font-semibold">
-                  {text.labelCountry}
-                </label>
-                <div className="relative">
-                  <select
-                    value={formData.category}
-                    onChange={handleCategoryChange}
-                    className="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-3.5 text-white appearance-none focus:outline-none focus:border-spicy-red-light transition-colors cursor-pointer"
-                  >
-                    <option value="korea">{text.optKorea}</option>
-                    <option value="global">{text.optGlobal}</option>
-                  </select>
-                  <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">▼</div>
-                </div>
-              </div>
-
-              {/* Specific Region Dropdown */}
-              <div>
-                <label className="block text-xs uppercase tracking-wider text-gray-400 mb-2 font-semibold">
-                  {text.labelRegion}
-                </label>
-                <div className="relative">
-                  <select
-                    name="targetId"
-                    value={formData.targetId}
-                    onChange={handleInputChange}
-                    className="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-3.5 text-white appearance-none focus:outline-none focus:border-spicy-red-light transition-colors cursor-pointer"
-                  >
-                    {formData.category === 'korea'
-                      ? dropdownOptions.korea.map(r => <option key={r.id} value={r.id}>{r.name}</option>)
-                      : dropdownOptions.global.map(c => <option key={c.id} value={c.id}>{c.name}</option>)
-                    }
-                  </select>
-                  <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">▼</div>
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-2">
-              <label className="block text-xs uppercase tracking-wider text-spicy-red-light mb-2 font-semibold flex items-center gap-2">
-                {text.labelCode} <span className="text-gray-500 font-normal tracking-normal">{text.labelCodeHelp}</span>
-              </label>
-              <input
-                type="text"
-                name="serial"
-                value={formData.serial}
-                onChange={handleInputChange}
-                placeholder={text.placeholderCode}
-                maxLength={12}
-                className="w-full bg-black/80 border border-white/20 rounded-xl px-4 py-4 text-white text-lg font-mono tracking-[0.2em] focus:outline-none focus:border-spicy-red transition-all placeholder:text-gray-700 uppercase"
-              />
-            </div>
-
-            {/* Error Message */}
-            {errorMsg && (
-              <div className="text-spicy-red-light text-sm font-medium p-3 bg-spicy-red/10 rounded-lg border border-spicy-red/20 text-center animate-pulse">
-                {errorMsg}
-              </div>
-            )}
-
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className={`mt-2 w-full bg-gradient-to-r ${isSubmitting ? 'from-gray-700 to-gray-800 delay-0' : 'from-spicy-red to-spicy-red-dark hover:from-spicy-red-light hover:to-spicy-red shadow-[0_0_20px_rgba(230,0,0,0.3)] hover:shadow-[0_0_35px_rgba(230,0,0,0.5)]'} text-white font-bold py-4 px-6 rounded-xl transition-all transform hover:-translate-y-1 active:scale-[0.98] duration-300 flex justify-center items-center`}
-            >
-              {isSubmitting ? (
-                <div className="w-6 h-6 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
-              ) : (
-                text.btnSubmit
-              )}
-            </button>
-          </form>
-        </section>
-
-        {/* Leaderboard Section */}
-        <section className="w-full">
-          <div className="flex flex-col md:flex-row justify-between items-center md:items-end mb-10 gap-6 border-b border-white/10 pb-6">
-            <h2 className="text-4xl font-black font-display tracking-tight uppercase">{text.leaderboardTitle}</h2>
-            <div className="flex bg-black/50 p-1.5 rounded-2xl border border-white/5">
-              {[
-                { id: 'korea', label: text.tabKorea },
-                { id: 'global', label: text.tabGlobal }
-              ].map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`px-6 py-2.5 rounded-xl text-sm font-bold tracking-wide transition-all duration-300 ${activeTab === tab.id
-                    ? 'bg-spicy-red shadow-[0_0_15px_rgba(230,0,0,0.4)] text-white'
-                    : 'text-gray-400 hover:text-white hover:bg-white/5'
-                    }`}
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-4 relative min-h-[400px]">
-            {leaderboard[activeTab].map((item, i) => {
-              // Calculate width percentage relative to highest score
-              const progressPercent = Math.max(8, (item.score / maxScore) * 100);
-
-              return (
-                <div
-                  key={item.id}
-                  className="group relative bg-black/40 border border-white/5 rounded-2xl p-5 flex items-center justify-between overflow-hidden transition-all duration-300 hover:bg-white/5 hover:border-white/10 hover:-translate-y-0.5"
-                >
-                  {/* Progress Bar Background */}
-                  <div
-                    className="absolute top-0 left-0 h-full bg-gradient-to-r from-spicy-red/10 to-spicy-red/5 transition-all duration-1000 ease-out group-hover:from-spicy-red/20"
-                    style={{ width: `${progressPercent}%` }}
-                  ></div>
-
-                  <div className="relative z-10 flex items-center gap-6 w-full max-w-[60%]">
-                    <div className="text-2xl font-black font-display w-8 text-right opacity-80">
-                      {i === 0 ? <span className="text-[#FFD700] drop-shadow-[0_0_8px_rgba(255,215,0,0.5)]">1</span> :
-                        i === 1 ? <span className="text-[#C0C0C0]">2</span> :
-                          i === 2 ? <span className="text-[#CD7F32]">3</span> :
-                            <span className="text-gray-600">{i + 1}</span>}
+                        {/* Mobile menu button */}
+                        <div className="md:hidden flex items-center">
+                            {/* Mobile Language Toggle */}
+                            <div className="flex bg-black/40 border border-white/10 rounded-full p-1 h-8 mr-4">
+                                <button
+                                    onClick={() => setLang('kr')}
+                                    className={`px-2 py-0.5 rounded-full text-[10px] font-bold transition-all ${lang === 'kr' ? 'bg-spicy-red text-white' : 'text-gray-400 hover:text-white'}`}
+                                >
+                                    KR
+                                </button>
+                                <button
+                                    onClick={() => setLang('en')}
+                                    className={`px-2 py-0.5 rounded-full text-[10px] font-bold transition-all ${lang === 'en' ? 'bg-spicy-red text-white' : 'text-gray-400 hover:text-white'}`}
+                                >
+                                    EN
+                                </button>
+                            </div>
+                            <button
+                                onClick={() => setIsMenuOpen(!isMenuOpen)}
+                                className="text-gray-400 hover:text-white focus:outline-none p-2"
+                            >
+                                {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+                            </button>
+                        </div>
                     </div>
-                    <div className="font-bold text-lg md:text-xl truncate text-gray-100 group-hover:text-white transition-colors">
-                      {/* Only display the language specific part of the name if possible, else full name */}
-                      {lang === 'kr' ? item.name.split(' (')[0] : (item.name.split('(')[1]?.replace(')', '') || item.name.split(' (')[0])}
-                    </div>
-                  </div>
-
-                  <div className="relative z-10 text-2xl font-black tracking-tight font-display flex items-baseline gap-1">
-                    <span className="text-transparent bg-clip-text bg-gradient-to-br from-white to-gray-400 group-hover:from-spicy-red-light group-hover:to-white transition-all duration-300">
-                      {item.score.toLocaleString()}
-                    </span>
-                    <span className="text-xs font-bold text-gray-500">PTS</span>
-                  </div>
                 </div>
-              )
-            })}
-          </div>
-        </section>
 
-      </main>
+                {/* Mobile Menu Panel */}
+                {isMenuOpen && (
+                    <div className="md:hidden bg-spicy-black-light border-b border-white/10 px-2 pt-2 pb-4 space-y-1 shadow-2xl absolute w-full left-0 top-16 z-40">
+                        <MobileNavLink to="/" text={text.navHome} />
+                        <MobileNavLink to="/reviews" text={text.navReviews} />
+                        <MobileNavLink to="/guide" text={text.navGuide} />
+                        <MobileNavLink to="/products" text={text.navProducts} />
+                        <MobileNavLink to="/top10" text={text.navTop10} />
+                    </div>
+                )}
+            </nav>
 
-      {/* Success Modal Overlay */}
-      {successData && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-md bg-black/60 animate-in fade-in duration-300">
-          <div className="bg-spicy-black border border-spicy-red/30 rounded-3xl p-8 max-w-sm w-full text-center shadow-[0_0_50px_rgba(230,0,0,0.2)] animate-in zoom-in-95 duration-300">
-            <div className="w-20 h-20 bg-spicy-red/20 rounded-full flex items-center justify-center mx-auto mb-6">
-              <span className="text-4xl">🔥</span>
+            {/* Main Content Area */}
+            <div className="w-full flex-1 pt-16 flex flex-col items-center">
+                <Routes>
+                    {/* We pass the 'lang' state down so pages can translate themselves */}
+                    <Route path="/" element={<Home lang={lang} />} />
+                    <Route path="/reviews" element={<Reviews lang={lang} />} />
+                    <Route path="/guide" element={<Guide lang={lang} />} />
+                    <Route path="/products" element={<Products lang={lang} />} />
+                    <Route path="/top10" element={<Top10 lang={lang} />} />
+                </Routes>
             </div>
-            <h3 className="text-3xl font-black font-display mb-2 text-gradient">{text.modalTitle}</h3>
-            <p className="text-gray-300 mb-6 leading-relaxed">
-              {text.modalDesc1} <strong className="text-spicy-red-light">{lang === 'kr' ? successData.targetName.split(' (')[0] : (successData.targetName.split('(')[1]?.replace(')', '') || successData.targetName)}</strong>{text.modalDesc2}
-            </p>
-            <div className="bg-black/50 border border-white/5 rounded-xl p-4 mb-8">
-              <span className="text-xs uppercase text-gray-500 font-bold tracking-widest block mb-1">{text.modalCodeLabel}</span>
-              <span className="font-mono text-xl tracking-widest text-[#00FF66]">{successData.serial}</span>
-            </div>
-            <button
-              onClick={() => setSuccessData(null)}
-              className="w-full bg-white text-black font-bold py-4 rounded-xl hover:bg-gray-200 transition-colors"
-            >
-              {text.modalBtn}
-            </button>
-          </div>
+
+            {/* Global Footer */}
+            <footer className="w-full text-center py-8 text-gray-600 border-t border-white/5 mt-auto text-xs font-semibold tracking-widest uppercase">
+                <div className="flex justify-center gap-4 mb-4">
+                    <Link to="/guide" className="hover:text-gray-400 transition-colors">이용약관</Link>
+                    <Link to="/guide" className="hover:text-gray-400 transition-colors">개인정보처리방침</Link>
+                    <Link to="/guide" className="hover:text-gray-400 transition-colors">회사소개</Link>
+                </div>
+                &copy; {new Date().getFullYear()} {text.footer}
+            </footer>
         </div>
-      )}
+    )
+}
 
-      {/* Footer */}
-      <footer className="w-full text-center py-8 text-gray-600 border-t border-white/5 mt-auto text-xs font-semibold tracking-widest uppercase">
-        &copy; {new Date().getFullYear()} {text.footer}
-      </footer>
-    </div>
-  )
+function NavLink({ to, text, icon }) {
+    const location = useLocation()
+    const isActive = location.pathname === to
+    return (
+        <Link
+            to={to}
+            className={`px-4 py-2 rounded-full text-sm font-bold tracking-wide transition-all flex items-center gap-2
+        ${isActive ? 'bg-white/10 text-white shadow-inner' : 'text-gray-400 hover:text-white hover:bg-white/5'}
+      `}
+        >
+            {icon}
+            {text}
+        </Link>
+    )
+}
+
+function MobileNavLink({ to, text }) {
+    const location = useLocation()
+    const isActive = location.pathname === to
+    return (
+        <Link
+            to={to}
+            className={`block px-4 py-3 rounded-xl text-base font-bold transition-all
+        ${isActive ? 'bg-spicy-red/20 text-spicy-red-light' : 'text-gray-300 hover:bg-white/5 hover:text-white'}
+      `}
+        >
+            {text}
+        </Link>
+    )
 }
 
 export default App
