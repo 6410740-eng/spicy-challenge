@@ -1,32 +1,12 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import confetti from 'canvas-confetti'
 
-// --- Mock Data ---
-const REGIONS_KR = [
-  { id: 'seoul', name: '서울 (Seoul)', score: 6200 },
-  { id: 'incheon', name: '인천 (Incheon)', score: 4500 },
-  { id: 'gyeonggi', name: '경기 (Gyeonggi)', score: 8100 },
-  { id: 'gangwon', name: '강원 (Gangwon)', score: 3200 },
-  { id: 'gyeongbuk', name: '경북 (Gyeongbuk)', score: 4100 },
-  { id: 'gyeongnam', name: '경남 (Gyeongnam)', score: 4800 },
-  { id: 'chungbuk', name: '충북 (Chungbuk)', score: 2900 },
-  { id: 'chungnam', name: '충남 (Chungnam)', score: 3400 },
-  { id: 'jeonbuk', name: '전북 (Jeonbuk)', score: 2700 },
-  { id: 'jeonnam', name: '전남 (Jeonnam)', score: 3100 },
-  { id: 'jeju', name: '제주 (Jeju)', score: 2500 }
-];
+import { supabase } from './supabaseClient'
 
-const GLOBAL_COUNTRIES = [
-  { id: 'us', name: '미국 (United States)', score: 12400 },
-  { id: 'cn', name: '중국 (China)', score: 11200 },
-  { id: 'jp', name: '일본 (Japan)', score: 8900 },
-  { id: 'sea', name: '동남아 (Southeast Asia)', score: 7200 },
-  { id: 'eu', name: '유럽 (Europe)', score: 9500 }
-];
-
-const INITAL_DATA = {
-  korea: [...REGIONS_KR].sort((a, b) => b.score - a.score),
-  global: [...GLOBAL_COUNTRIES].sort((a, b) => b.score - a.score)
+// Initial Empty Data to avoid crashes before load
+const INITIAL_DATA = {
+  korea: [],
+  global: []
 }
 
 const POINTS_PER_CHALLENGE = 100;
@@ -90,25 +70,57 @@ const t = {
 function App() {
   const [lang, setLang] = useState('kr') // default Korean
   const [activeTab, setActiveTab] = useState('korea') // 'korea' or 'global'
-  const [leaderboard, setLeaderboard] = useState(INITAL_DATA)
+  const [leaderboard, setLeaderboard] = useState(INITIAL_DATA)
+  const [dropdownOptions, setDropdownOptions] = useState({ korea: [], global: [] })
 
   // Form State
-  // category: 'korea' | 'global'
-  const [formData, setFormData] = useState({ category: 'korea', targetId: 'seoul', serial: '' })
+  const [formData, setFormData] = useState({ category: 'korea', targetId: '', serial: '' })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
   const [successData, setSuccessData] = useState(null)
 
+  // Fetch initial data from Supabase
+  useEffect(() => {
+    fetchLeaderboard();
+  }, [])
+
+  const fetchLeaderboard = async () => {
+    const { data, error } = await supabase
+      .from('rankings')
+      .select('*')
+      .order('score', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching data:', error);
+      return;
+    }
+
+    if (data) {
+      const krData = data.filter(d => d.category === 'korea');
+      const glData = data.filter(d => d.category === 'global');
+
+      setLeaderboard({ korea: krData, global: glData });
+
+      // Setup dropdowns and initial selections
+      setDropdownOptions({ korea: krData, global: glData });
+      if (krData.length > 0 && formData.targetId === '') {
+        setFormData(prev => ({ ...prev, targetId: krData[0].id }));
+      }
+    }
+  }
+
   const text = t[lang];
-  const maxScore = Math.max(...leaderboard[activeTab].map(item => item.score)) || 100;
+  // Calculate highest score for progress bar scaling
+  const maxScore = leaderboard[activeTab].length > 0 ? Math.max(...leaderboard[activeTab].map(item => item.score)) : 100;
 
   // Sync targetId when category changes
   const handleCategoryChange = (e) => {
     const newCat = e.target.value;
+    const defaultTarget = dropdownOptions[newCat].length > 0 ? dropdownOptions[newCat][0].id : '';
     setFormData({
       ...formData,
       category: newCat,
-      targetId: newCat === 'korea' ? 'seoul' : 'us'
+      targetId: defaultTarget
     });
     setErrorMsg('');
   };
@@ -119,7 +131,7 @@ function App() {
     setErrorMsg('')
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
 
     if (!formData.serial || formData.serial.length < 8) {
@@ -130,42 +142,67 @@ function App() {
     setIsSubmitting(true)
     setErrorMsg('')
 
-    setTimeout(() => {
-      if (formData.serial.toUpperCase() === 'USED-CODE') {
-        setErrorMsg(text.errorUsed)
-        setIsSubmitting(false)
-        return
+    const codeUpper = formData.serial.toUpperCase();
+
+    try {
+      // 1. Check if code is valid and unused
+      const { data: codeData, error: codeError } = await supabase
+        .from('serial_codes')
+        .select('*')
+        .eq('code', codeUpper)
+        .single();
+
+      if (codeError || !codeData) {
+        setErrorMsg('존재하지 않거나 유효하지 않은 코드입니다. (Invalid code)');
+        setIsSubmitting(false);
+        return;
       }
 
-      // Find the name of the selected region/country
+      if (codeData.is_used) {
+        setErrorMsg(text.errorUsed);
+        setIsSubmitting(false);
+        return;
+      }
+
+      // 2. Mark code as used
+      const { error: updateCodeError } = await supabase
+        .from('serial_codes')
+        .update({ is_used: true, used_at: new Date().toISOString(), used_by_region: formData.targetId })
+        .eq('code', codeUpper);
+
+      if (updateCodeError) throw updateCodeError;
+
+      // Find target name for UI
       const listToSearch = formData.category === 'korea' ? leaderboard.korea : leaderboard.global;
       const targetObj = listToSearch.find(item => item.id === formData.targetId);
       const targetName = targetObj ? targetObj.name : 'Unknown';
+      const newScore = (targetObj?.score || 0) + POINTS_PER_CHALLENGE;
 
-      // Update scores
-      setLeaderboard(prev => {
-        const newBoard = { ...prev };
-        const items = [...newBoard[formData.category]];
-        const idx = items.findIndex(item => item.id === formData.targetId);
-        if (idx !== -1) {
-          items[idx].score += POINTS_PER_CHALLENGE;
-        }
-        items.sort((a, b) => b.score - a.score);
-        newBoard[formData.category] = items;
-        return newBoard;
-      });
+      // 3. Update ranking score
+      const { error: rankError } = await supabase
+        .from('rankings')
+        .update({ score: newScore })
+        .eq('id', formData.targetId);
+
+      if (rankError) throw rankError;
+
+      // Refresh Leaderboard
+      await fetchLeaderboard();
 
       triggerConfetti();
-      setIsSubmitting(false);
-
       setSuccessData({
         points: POINTS_PER_CHALLENGE,
         targetName: targetName,
-        serial: formData.serial.toUpperCase()
+        serial: codeUpper
       });
+      setFormData(prev => ({ ...prev, serial: '' }));
 
-      setFormData(prev => ({ ...prev, serial: '' }))
-    }, 1200)
+    } catch (err) {
+      console.error(err);
+      setErrorMsg('서버 에러가 발생했습니다. 잠시 후 다시 시도해주세요.');
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   const triggerConfetti = () => {
@@ -256,8 +293,8 @@ function App() {
                     className="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-3.5 text-white appearance-none focus:outline-none focus:border-spicy-red-light transition-colors cursor-pointer"
                   >
                     {formData.category === 'korea'
-                      ? REGIONS_KR.map(r => <option key={r.id} value={r.id}>{r.name}</option>)
-                      : GLOBAL_COUNTRIES.map(c => <option key={c.id} value={c.id}>{c.name}</option>)
+                      ? dropdownOptions.korea.map(r => <option key={r.id} value={r.id}>{r.name}</option>)
+                      : dropdownOptions.global.map(c => <option key={c.id} value={c.id}>{c.name}</option>)
                     }
                   </select>
                   <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">▼</div>
