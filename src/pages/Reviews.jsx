@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import { supabase } from '../supabaseClient'
 import { MessageSquare, ThumbsUp, Clock } from 'lucide-react'
 import { motion } from 'framer-motion'
