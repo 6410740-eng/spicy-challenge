@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../supabaseClient'
 import confetti from 'canvas-confetti'
+import { motion } from 'framer-motion'
 
 const POINTS_PER_CHALLENGE = 100;
 const INITIAL_DATA = { korea: [], global: [] }
@@ -173,7 +174,13 @@ export default function Home({ lang }) {
   const maxScore = leaderboard[activeTab].length > 0 ? Math.max(...leaderboard[activeTab].map(item => item.score)) : 100;
 
   return (
-    <div className="w-full flex-1 flex flex-col items-center pb-20 mt-8">
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      transition={{ duration: 0.4, ease: "easeOut" }}
+      className="w-full flex-1 flex flex-col items-center pb-20 mt-8"
+    >
       <header className="w-full flex flex-col items-center justify-center pt-12 pb-12 relative">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-2xl h-[400px] bg-spicy-red/15 blur-[120px] rounded-full pointer-events-none"></div>
         <div className="inline-block px-4 py-1.5 rounded-full border border-spicy-red/30 bg-spicy-red/10 text-spicy-red-light text-xs font-bold tracking-widest mb-6 z-10 backdrop-blur-sm uppercase">
@@ -294,6 +301,6 @@ export default function Home({ lang }) {
           </div>
         </div>
       )}
-    </div>
+    </motion.div>
   )
 }

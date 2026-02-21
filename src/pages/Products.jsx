@@ -1,4 +1,5 @@
 import { ShoppingBag, ExternalLink } from 'lucide-react'
+import { motion } from 'framer-motion'
 
 const t = {
     kr: {
@@ -80,19 +81,35 @@ const t = {
 export default function Products({ lang }) {
     const text = t[lang] || t.kr
 
+    const container = {
+        hidden: { opacity: 0 },
+        show: { opacity: 1, transition: { staggerChildren: 0.1 } }
+    }
+
+    const item = {
+        hidden: { opacity: 0, scale: 0.9 },
+        show: { opacity: 1, scale: 1, transition: { type: 'spring', bounce: 0.4 } }
+    }
+
     return (
-        <div className="w-full max-w-6xl px-4 py-8 md:py-16 animate-in fade-in duration-500 pb-32">
-            <header className="mb-16 text-center">
+        <motion.div
+            variants={container}
+            initial="hidden"
+            animate="show"
+            exit={{ opacity: 0, y: -20, transition: { duration: 0.3 } }}
+            className="w-full max-w-6xl px-4 py-8 md:py-16 pb-32"
+        >
+            <motion.header variants={item} className="mb-16 text-center">
                 <h1 className="text-4xl md:text-5xl font-black font-display tracking-tight mb-4 flex items-center justify-center gap-3">
                     <ShoppingBag className="w-10 h-10 text-spicy-red-light" />
                     {text.title}
                 </h1>
                 <p className="text-gray-400 text-lg">{text.subtitle}</p>
-            </header>
+            </motion.header>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <motion.div variants={container} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {text.products.map(product => (
-                    <div key={product.id} className="bg-black/40 border border-white/5 rounded-3xl overflow-hidden hover:border-white/20 transition-all duration-300 group flex flex-col h-full">
+                    <motion.div variants={item} whileHover={{ y: -10 }} key={product.id} className="bg-black/40 border border-white/5 rounded-3xl overflow-hidden hover:border-white/20 hover:shadow-[0_0_30px_rgba(230,0,0,0.2)] transition-all duration-300 group flex flex-col h-full">
                         <div className="relative aspect-square overflow-hidden bg-gray-900">
                             {product.tag && (
                                 <div className="absolute top-3 right-3 bg-spicy-red text-white text-xs font-bold px-3 py-1 rounded-full z-10 shadow-lg tracking-widest uppercase">
@@ -120,9 +137,9 @@ export default function Products({ lang }) {
                                 </button>
                             </div>
                         </div>
-                    </div>
+                    </motion.div>
                 ))}
-            </div>
-        </div>
+            </motion.div>
+        </motion.div>
     )
 }

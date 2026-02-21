@@ -1,4 +1,5 @@
 import { Flame, AlertTriangle, CheckCircle2 } from 'lucide-react'
+import { motion } from 'framer-motion'
 
 const t = {
     kr: {
@@ -60,16 +61,36 @@ const t = {
 export default function Guide({ lang }) {
     const text = t[lang] || t.kr
 
+    // Framer Motion Variants
+    const container = {
+        hidden: { opacity: 0 },
+        show: {
+            opacity: 1,
+            transition: { staggerChildren: 0.15 }
+        }
+    }
+
+    const item = {
+        hidden: { opacity: 0, y: 20 },
+        show: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 100 } }
+    }
+
     return (
-        <div className="w-full max-w-4xl px-4 py-8 md:py-16 animate-in fade-in duration-500 pb-32">
-            <header className="mb-12 text-center">
+        <motion.div
+            initial="hidden"
+            animate="show"
+            exit={{ opacity: 0, y: -20, transition: { duration: 0.3 } }}
+            variants={container}
+            className="w-full max-w-4xl px-4 py-8 md:py-16 pb-32"
+        >
+            <motion.header variants={item} className="mb-12 text-center">
                 <h1 className="text-4xl md:text-5xl font-black font-display tracking-tight mb-4">{text.title}</h1>
                 <p className="text-gray-400 text-lg">{text.subtitle}</p>
-            </header>
+            </motion.header>
 
             <div className="space-y-8">
                 {text.sections.map((sec, i) => (
-                    <section key={i} className="bg-black/40 border border-white/5 rounded-3xl p-6 md:p-8 hover:bg-white/5 transition-colors">
+                    <motion.section key={i} variants={item} className="bg-black/40 border border-white/5 rounded-3xl p-6 md:p-8 hover:bg-white/5 transition-colors group">
                         <div className="flex items-center gap-4 mb-4">
                             <div className="bg-white/5 p-3 rounded-2xl border border-white/10">
                                 {sec.icon}
@@ -79,18 +100,18 @@ export default function Guide({ lang }) {
                         <p className="text-gray-300 leading-relaxed whitespace-pre-line text-lg">
                             {sec.content}
                         </p>
-                    </section>
+                    </motion.section>
                 ))}
             </div>
 
-            <div className="mt-12 bg-spicy-red/10 border border-spicy-red/20 rounded-3xl p-6 md:p-8">
+            <motion.div variants={item} className="mt-12 bg-spicy-red/10 border border-spicy-red/20 rounded-3xl p-6 md:p-8 group hover:bg-spicy-red/20 transition-colors duration-500">
                 <h3 className="text-xl font-bold font-display text-spicy-red-light mb-4">{text.tipsTitle}</h3>
                 <ul className="list-disc list-inside space-y-2 text-gray-300">
                     {text.tips.map((tip, i) => (
                         <li key={i} className="leading-relaxed">{tip}</li>
                     ))}
                 </ul>
-            </div>
-        </div>
+            </motion.div>
+        </motion.div>
     )
 }

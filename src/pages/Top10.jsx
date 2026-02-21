@@ -1,4 +1,5 @@
-import { Trophy } from 'lucide-react'
+import { Trophy, Flame } from 'lucide-react'
+import { motion } from 'framer-motion'
 
 const t = {
     kr: {
@@ -120,9 +121,25 @@ const t = {
 export default function Top10({ lang }) {
     const text = t[lang] || t.kr
 
+    const container = {
+        hidden: { opacity: 0 },
+        show: { opacity: 1, transition: { staggerChildren: 0.1 } }
+    }
+
+    const item = {
+        hidden: { opacity: 0, x: -30 },
+        show: { opacity: 1, x: 0, transition: { type: 'spring', stiffness: 100 } }
+    }
+
     return (
-        <div className="w-full max-w-4xl px-4 py-8 md:py-16 animate-in fade-in duration-500 pb-32">
-            <header className="mb-12 text-center">
+        <motion.div
+            initial="hidden"
+            animate="show"
+            exit={{ opacity: 0, x: 30, transition: { duration: 0.3 } }}
+            variants={container}
+            className="w-full max-w-4xl px-4 py-8 md:py-16 pb-32"
+        >
+            <motion.header variants={item} className="mb-12 text-center">
                 <h1 className="text-4xl md:text-5xl font-black font-display tracking-tight mb-4 flex items-center justify-center gap-4">
                     <Trophy className="w-10 h-10 text-[#FFD700]" />
                     {text.title}
@@ -131,31 +148,67 @@ export default function Top10({ lang }) {
                 <p className="text-gray-300 leading-relaxed text-lg max-w-3xl mx-auto">
                     {text.intro}
                 </p>
-            </header>
+            </motion.header>
 
-            <div className="space-y-6">
-                {text.items.map((item) => (
-                    <article key={item.rank} className="bg-black/30 border border-white/5 rounded-3xl p-6 md:p-8 flex flex-col md:flex-row gap-6 items-start hover:bg-white/5 transition-all duration-300 relative overflow-hidden group">
-                        <div className="absolute left-0 top-0 h-full w-1 bg-gradient-to-b from-spicy-red-light to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+            <motion.div variants={container} className="space-y-6">
+                {text.items.map((entry) => {
+                    const rawShu = parseInt(entry.shu.replace(/[^0-9]/g, '')) || 0;
+                    const heatPercent = Math.min(100, Math.max(5, (rawShu / 3000000) * 100)); // Max 3M SHU
 
-                        <div className="flex-shrink-0 flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-gray-800 to-black border border-white/10 shadow-lg text-3xl font-black font-display text-white">
-                            {item.rank}
-                        </div>
+                    let rankColors = "from-gray-800 to-black text-gray-400 border-white/10";
+                    if (entry.rank === 1) rankColors = "from-yellow-500/20 to-yellow-700/10 text-[#FFD700] border-yellow-500/50 shadow-[0_0_30px_rgba(255,215,0,0.2)]";
+                    else if (entry.rank === 2) rankColors = "from-gray-300/20 to-gray-500/10 text-[#E0E0E0] border-gray-400/50 shadow-[0_0_20px_rgba(200,200,200,0.1)]";
+                    else if (entry.rank === 3) rankColors = "from-amber-600/20 to-amber-800/10 text-[#CD7F32] border-amber-600/50 shadow-[0_0_20px_rgba(205,127,50,0.1)]";
 
-                        <div className="flex-1">
-                            <div className="flex flex-col md:flex-row md:items-baseline md:justify-between gap-2 mb-3">
-                                <h2 className="text-2xl font-bold font-display text-white group-hover:text-spicy-red-light transition-colors">{item.name}</h2>
-                                <span className="inline-block px-3 py-1 bg-spicy-red/10 border border-spicy-red/20 rounded-full text-spicy-red-light text-sm font-mono font-bold tracking-widest uppercase self-start md:self-auto">
-                                    {item.shu}
-                                </span>
+                    return (
+                        <motion.article
+                            custom={entry.rank}
+                            variants={item}
+                            whileHover={{ y: -5, scale: 1.01 }}
+                            key={entry.rank}
+                            className="bg-black/40 backdrop-blur-md border border-white/10 rounded-[2rem] p-6 md:p-10 flex flex-col md:flex-row gap-8 items-center hover:bg-white/5 hover:border-spicy-red/50 hover:shadow-[0_0_40px_rgba(230,0,0,0.15)] transition-all duration-500 relative overflow-hidden group"
+                        >
+                            {/* Background Heat Glow on Hover */}
+                            <div className="absolute top-0 right-0 w-64 h-64 bg-spicy-red/20 rounded-full blur-[80px] -mr-32 -mt-32 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"></div>
+
+                            {/* Rank Badge */}
+                            <div className={`flex-shrink-0 flex flex-col items-center justify-center w-24 h-24 md:w-32 md:h-32 rounded-[1.5rem] bg-gradient-to-br ${rankColors} text-5xl md:text-7xl font-black font-display relative z-10 transition-colors duration-500`}>
+                                <span className="text-[10px] md:text-sm font-bold tracking-widest uppercase opacity-60 mb-1">RANK</span>
+                                {entry.rank}
                             </div>
-                            <p className="text-gray-400 leading-relaxed text-lg">
-                                {item.desc}
-                            </p>
-                        </div>
-                    </article>
-                ))}
-            </div>
-        </div>
+
+                            <div className="flex-1 w-full relative z-10">
+                                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-5">
+                                    <h2 className="text-3xl md:text-4xl font-black font-display text-white group-hover:text-spicy-red-light transition-colors duration-300">
+                                        {entry.name}
+                                    </h2>
+
+                                    {/* SHU Tag & Meter */}
+                                    <div className="flex flex-col items-start md:items-end min-w-[220px]">
+                                        <div className="flex items-center gap-2 bg-spicy-red/10 border border-spicy-red/30 rounded-xl px-4 py-2.5 mb-3 group-hover:bg-spicy-red/20 transition-colors">
+                                            <Flame className={`w-5 h-5 ${entry.rank === 1 ? 'text-yellow-400 animate-pulse' : 'text-spicy-red-light'}`} />
+                                            <span className="text-spicy-red-light font-mono font-bold text-lg md:text-xl tracking-widest">{entry.shu}</span>
+                                        </div>
+                                        {/* Heat Meter Bar */}
+                                        <div className="w-full h-2.5 bg-black/60 rounded-full overflow-hidden border border-white/10 shadow-inner">
+                                            <motion.div
+                                                initial={{ width: 0 }}
+                                                animate={{ width: `${heatPercent}%` }}
+                                                transition={{ duration: 1.5, delay: entry.rank * 0.1 + 0.5, ease: 'easeOut' }}
+                                                className={`h-full rounded-full bg-gradient-to-r ${entry.rank === 1 ? 'from-orange-500 to-yellow-400 shadow-[0_0_12px_rgba(255,215,0,0.8)]' : 'from-red-900 via-spicy-red to-spicy-red-light shadow-[0_0_12px_rgba(230,0,0,0.8)]'}`}
+                                            ></motion.div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <p className="text-gray-300 leading-relaxed text-lg md:text-xl border-t border-white/10 pt-5 font-medium">
+                                    {entry.desc}
+                                </p>
+                            </div>
+                        </motion.article>
+                    )
+                })}
+            </motion.div>
+        </motion.div>
     )
 }

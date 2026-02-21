@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Routes, Route, Link, useLocation } from 'react-router-dom'
 import { Flame, Star, ShoppingBag, Trophy, Info, Menu, X } from 'lucide-react'
+import { AnimatePresence } from 'framer-motion'
 
 // Page Components
 import Home from './pages/Home'
@@ -123,14 +124,16 @@ function App() {
 
             {/* Main Content Area */}
             <div className="w-full flex-1 pt-16 flex flex-col items-center">
-                <Routes>
-                    {/* We pass the 'lang' state down so pages can translate themselves */}
-                    <Route path="/" element={<Home lang={lang} />} />
-                    <Route path="/reviews" element={<Reviews lang={lang} />} />
-                    <Route path="/guide" element={<Guide lang={lang} />} />
-                    <Route path="/products" element={<Products lang={lang} />} />
-                    <Route path="/top10" element={<Top10 lang={lang} />} />
-                </Routes>
+                <AnimatePresence mode="wait">
+                    <Routes location={location} key={location.pathname}>
+                        {/* We pass the 'lang' state down so pages can translate themselves */}
+                        <Route path="/" element={<Home lang={lang} />} />
+                        <Route path="/reviews" element={<Reviews lang={lang} />} />
+                        <Route path="/guide" element={<Guide lang={lang} />} />
+                        <Route path="/products" element={<Products lang={lang} />} />
+                        <Route path="/top10" element={<Top10 lang={lang} />} />
+                    </Routes>
+                </AnimatePresence>
             </div>
 
             {/* Global Footer */}

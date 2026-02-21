@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react'
 import { supabase } from '../supabaseClient'
 import { MessageSquare, ThumbsUp, Clock } from 'lucide-react'
+import { motion } from 'framer-motion'
 
 // Translation dict
 const t = {
@@ -109,18 +109,33 @@ export default function Reviews({ lang }) {
         return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`
     }
 
+    const container = {
+        hidden: { opacity: 0 },
+        show: { opacity: 1, transition: { staggerChildren: 0.1 } }
+    }
+    const item = {
+        hidden: { opacity: 0, y: 20 },
+        show: { opacity: 1, y: 0 }
+    }
+
     return (
-        <div className="w-full max-w-4xl px-4 py-8 md:py-16 animate-in fade-in duration-500 pb-32">
-            <header className="mb-12 text-center">
+        <motion.div
+            initial="hidden"
+            animate="show"
+            exit={{ opacity: 0, y: -20, transition: { duration: 0.3 } }}
+            variants={container}
+            className="w-full max-w-4xl px-4 py-8 md:py-16 pb-32"
+        >
+            <motion.header variants={item} className="mb-12 text-center">
                 <h1 className="text-4xl md:text-5xl font-black font-display tracking-tight mb-4 flex items-center justify-center gap-3">
                     <MessageSquare className="w-10 h-10 text-spicy-red-light" />
                     {text.title}
                 </h1>
                 <p className="text-gray-400 text-lg">{text.subtitle}</p>
-            </header>
+            </motion.header>
 
             {/* Review Input Form */}
-            <section className="bg-black/50 border border-spicy-red/20 rounded-3xl p-6 md:p-8 mb-12 shadow-[0_0_30px_rgba(230,0,0,0.1)]">
+            <motion.section variants={item} className="bg-black/50 border border-spicy-red/20 rounded-3xl p-6 md:p-8 mb-12 shadow-[0_0_30px_rgba(230,0,0,0.1)]">
                 <form onSubmit={handleSubmit} className="flex flex-col gap-4">
                     <input
                         type="text"
@@ -154,17 +169,17 @@ export default function Reviews({ lang }) {
                         </button>
                     </div>
                 </form>
-            </section>
+            </motion.section>
 
             {/* Reviews List */}
-            <section className="space-y-4">
+            <motion.section variants={container} className="space-y-4">
                 {isLoading ? (
                     <div className="text-center text-gray-500 py-10 animate-pulse">Loading reviews...</div>
                 ) : reviews.length === 0 ? (
                     <div className="text-center text-gray-500 py-10 bg-white/5 rounded-2xl border border-white/5">{text.msgEmpty}</div>
                 ) : (
                     reviews.map((review) => (
-                        <div key={review.id} className="bg-black/30 border border-white/5 rounded-2xl p-6 hover:bg-white/5 transition-all">
+                        <motion.div variants={item} layout key={review.id} className="bg-black/30 border border-white/5 rounded-2xl p-6 hover:bg-white/5 transition-all">
                             <div className="flex justify-between items-start mb-4">
                                 <span className="font-bold text-lg text-white">{review.nickname}</span>
                                 <span className="text-sm font-mono text-gray-500 flex items-center gap-1">
@@ -183,10 +198,10 @@ export default function Reviews({ lang }) {
                                     {review.likes || 0}
                                 </button>
                             </div>
-                        </div>
+                        </motion.div>
                     ))
                 )}
-            </section>
-        </div>
+            </motion.section>
+        </motion.div>
     )
 }
