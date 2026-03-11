@@ -47,14 +47,14 @@ const t = {
     en: {
         title: 'How to Use the Challenge Kit',
         subtitle: 'The complete guide to surviving The Red Lab Spicy Challenge',
-        introText: 'The Red Lab Spicy Challenge Kit is blended with the pride of Korean spice, "Cheongyang Chili". Customize your favorite foods with the clean, authentic heat, not artificial flavors.',
+        introText: 'The Red Lab Spicy Challenge Kit is blended with the pride of Korean spice, "Cheongyang Chili". Step away from artificial flavors and customize your favorite foods with this clean, authentic heat.',
         levelsTitle: '[LV 1~5 Heat Levels]',
         levels: [
-            { level: 'LV.1', name: 'Original Cheongyang', subtitle: 'Pride of K-Spicy', desc: 'The base of all levels. Clean and deep original heat of Cheongyang pepper.' },
-            { level: 'LV.2', name: 'Asian Fire', subtitle: 'Vietnam sparks on Cheongyang', desc: 'Sharp hitting heat of Vietnamese pepper striking after the deep Cheongyang flavor.' },
-            { level: 'LV.3', name: 'Warning of the Sun', subtitle: 'Hot meeting of Cheongyang & Habanero', desc: 'Mexican Habanero melts into Cheongyang. The heat that opens your pores.' },
-            { level: 'LV.4', name: 'Ghost Sniper', subtitle: 'Terrible hybrid of Cheongyang & Ghost Pepper', desc: 'Numbing pain and pleasure striking like a Ghost just as you taste Cheongyang.' },
-            { level: 'LV.5', name: 'Karma of the Reaper', subtitle: 'Cheongyang & Carolina Reaper, Limit Released', desc: 'Merciless blend of Guinness record holding Reaper and Cheongyang.' }
+            { level: 'LV.1', name: 'Original Cheongyang', subtitle: 'The Pride of K-Spicy', desc: 'The foundation of all levels. The clean and deep original heat of Cheongyang pepper.' },
+            { level: 'LV.2', name: 'Asian Fire', subtitle: 'Vietnamese Sparks on Cheongyang', desc: 'The sharp, striking heat of Vietnamese peppers follows the deep Cheongyang flavor.' },
+            { level: 'LV.3', name: 'Warning of the Sun', subtitle: 'The Hot Encounter of Cheongyang & Habanero', desc: 'Mexican Habanero melts into the Cheongyang base. The kind of heat that opens your pores.' },
+            { level: 'LV.4', name: 'Ghost Sniper', subtitle: 'The Terrifying Hybrid of Cheongyang & Ghost Pepper', desc: 'Just as you taste the Cheongyang, numbing pain and pleasure strike you like a Ghost.' },
+            { level: 'LV.5', name: 'Karma of the Reaper', subtitle: 'Cheongyang & Carolina Reaper, Limits Released', desc: 'A merciless blend of Cheongyang and the Guinness World Record holding Reaper.' }
         ],
         sections: [
             {
@@ -65,13 +65,13 @@ const t = {
             {
                 icon: <Target className="w-6 h-6 text-spicy-red-light" />,
                 title: '🚨 The Red Lab Mission',
-                subtitle: '"Find the unprecedented crazy spicy combo and claim the bounty!"',
-                content: 'The painful 1-minute endurance is over.\nCombine your imagination and spice pride to find a **\'Crazy Spice Combo\'** no one has tried.\nYour experiment becomes a global trend.\n\n[3 Steps to Complete Mission]\n\n🎯 STEP 1. Pick your Target\nPrepare your target food, from weird combinations to your soul food.\n\n🔥 STEP 2. Drop the Spice\nChoose your level from Original(LV.1) to Karma(LV.5)! Drop the red powder onto your food without hesitation.\n\n📸 STEP 3. Record & Claim\nRecord a short-form video of your **raw reaction taking the first bite**, and leave a one-line review: "Recommend vs Not Recommend".\nUpload with required hashtags to complete!\n\nHashtags: #TheRedLabLab #KSpicyHunter #MyMoneyMyFood @the_redlab_official'
+                subtitle: '"Find an unprecedented, crazy spicy combo and claim the bounty!"',
+                content: 'The painful 1-minute endurance test is over.\nCombine your imagination with your spice pride to find a **\'Crazy Spice Combo\'** that no one else has tried.\nLet your experiment become a global trend.\n\n[3 Steps to Complete the Mission]\n\n🎯 STEP 1. Pick your Target\nPrepare your target food—anything from bizarre combinations to your ultimate soul food.\n\n🔥 STEP 2. Drop the Spice\nChoose your heat level, from Original (LV.1) to Karma (LV.5)! Drop the red powder onto your food without hesitation.\n\n📸 STEP 3. Record & Claim\nRecord a short-form video of your **raw reaction to the first bite**, and leave a one-line review: "Recommend vs. Not Recommend".\nUpload it with the required hashtags to complete the mission!\n\nHashtags: #K-SpicyChallenge @the_redlab_official'
             },
             {
                 icon: <Gift className="w-6 h-6 text-purple-400" />,
                 title: 'Hunter\'s Loot & Special Rewards',
-                content: '🎁 Hunter\'s Loot (Merch)\nThe enclosed \'WANTED Frame\' and \'Brand Sticker\' are honorable goods given only to qualified hunters.\nShow off your spice pride by sticking them on your laptop, phone case, etc.\n\n🏆 Mad Scientist of the Month\nWe select the hunter with the most views or the craziest combo each month to be immortalized in our Hall of Fame and reward them with massive **\'CY (Bounty)\'** and special prizes!'
+                content: '🎁 Hunter\'s Loot (Merch)\nThe enclosed \'WANTED Frame\' and \'Brand Sticker\' are honorable goods given only to qualified hunters who brave the challenge.\nShow off your spice pride by sticking them on your laptop, phone case, or diary.\n\n🏆 Mad Scientist of the Month\nEach month, we select the hunter with the most views or the craziest combo to be immortalized in our Hall of Fame. Winners receive a massive **\'CY (Bounty)\'** and special prizes!'
             },
             {
                 icon: <CheckCircle2 className="w-6 h-6 text-[#00FF66]" />,
