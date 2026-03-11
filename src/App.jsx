@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Routes, Route, Link, useLocation } from 'react-router-dom'
-import { Flame, Star, ShoppingBag, Trophy, Info, Menu, X } from 'lucide-react'
+import { Flame, Star, ShoppingBag, Trophy, Info, Menu, X, MapPin } from 'lucide-react'
 import { AnimatePresence } from 'framer-motion'
 
 // Page Components
@@ -9,6 +9,7 @@ import Reviews from './pages/Reviews'
 import Guide from './pages/Guide'
 import Products from './pages/Products'
 import Top10 from './pages/Top10'
+import AboutCY from './pages/AboutCY'
 
 // Translations for Layout Elements
 const t = {
@@ -18,6 +19,7 @@ const t = {
         navGuide: '활용방법',
         navProducts: '더레드랩 상품',
         navTop10: '매운맛 Top 10',
+        navAboutCY: '청양(CY) 소개',
         footer: '매운맛 챌린지 글로벌. Safe & Secure.'
     },
     en: {
@@ -26,6 +28,7 @@ const t = {
         navGuide: 'Guide',
         navProducts: 'Products',
         navTop10: 'Top 10 Spicy',
+        navAboutCY: 'About CY',
         footer: 'Spicy Challenge Global. Safe & Secure.'
     }
 }
@@ -65,6 +68,7 @@ function App() {
                             <NavLink to="/guide" icon={<Info className="w-4 h-4" />} text={text.navGuide} />
                             <NavLink to="/products" icon={<ShoppingBag className="w-4 h-4" />} text={text.navProducts} />
                             <NavLink to="/top10" icon={<Trophy className="w-4 h-4" />} text={text.navTop10} />
+                            <NavLink to="/about-cy" icon={<MapPin className="w-4 h-4" />} text={text.navAboutCY} />
                         </div>
 
                         {/* Language Toggle */}
@@ -118,6 +122,7 @@ function App() {
                         <MobileNavLink to="/guide" text={text.navGuide} />
                         <MobileNavLink to="/products" text={text.navProducts} />
                         <MobileNavLink to="/top10" text={text.navTop10} />
+                        <MobileNavLink to="/about-cy" text={text.navAboutCY} />
                     </div>
                 )}
             </nav>
@@ -132,6 +137,7 @@ function App() {
                         <Route path="/guide" element={<Guide lang={lang} />} />
                         <Route path="/products" element={<Products lang={lang} />} />
                         <Route path="/top10" element={<Top10 lang={lang} />} />
+                        <Route path="/about-cy" element={<AboutCY lang={lang} />} />
                     </Routes>
                 </AnimatePresence>
             </div>
